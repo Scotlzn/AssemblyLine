@@ -22,3 +22,31 @@ def image_alpha(source, opacity):
     temp.blit(source, (0, 0))
     temp.set_alpha(opacity)
     return temp
+
+def load_all_items(items=4):
+    out = {}
+    for i in range(1, items+1, 1):
+        out[i] = pygame.image.load(f'Assets/Items/{i}.png').convert()
+    return out
+
+def any_value_true(dictionary):
+    return any(dictionary.values())
+
+def ui_active_to_data(actives):
+    if actives["crafter"]:
+        return 0
+    if actives["generator"]:
+        return 1
+    
+def set_all_false(dictionary):
+    for key in dictionary:
+        dictionary[key] = False
+    return dictionary
+
+def centred_text_at(surf, font, pos, text):
+        textSurface = font.render(text, False, (255, 255, 255))
+        textRect = textSurface.get_rect(center=pos)
+        surf.blit(textSurface, textRect)
+
+def opposite_direction(n):
+    return (n + 2 - 1) % 4 + 1

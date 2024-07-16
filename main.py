@@ -3,7 +3,7 @@ from game import Game
 
 pygame.init()
 WINDOW_SIZE = (800, 800)
-DISPLAY_SIZE = (96, 96)
+DISPLAY_SIZE = (192, 192)
 screen = pygame.display.set_mode(WINDOW_SIZE)
 display = pygame.surface.Surface(DISPLAY_SIZE)
 clock = pygame.time.Clock()
