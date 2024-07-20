@@ -1,3 +1,0 @@
-Fix crafters
-Improve shit mouse controls for building
-Change ui.active = be and int with ids (1 = x menu, 2 = y menu) and move ui code into ui.py
