@@ -2,14 +2,16 @@ import pygame
 from game import Game
 
 pygame.init()
-WINDOW_SIZE = (800, 800)
-DISPLAY_SIZE = (192, 192)
+WINDOW_SIZE = (1280, 768)
+DISPLAY_SIZE = (320, 192)
 screen = pygame.display.set_mode(WINDOW_SIZE)
 display = pygame.surface.Surface(DISPLAY_SIZE)
 clock = pygame.time.Clock()
 TITLE = "Assembly Line "
 WINDOW_DATA = {
-	"Upscale": WINDOW_SIZE[0] / DISPLAY_SIZE[0]
+	"Upscale": WINDOW_SIZE[0] / DISPLAY_SIZE[0],
+	"Width": DISPLAY_SIZE[0],
+	"Height": DISPLAY_SIZE[1] - 16
 }
 
 main = Game(display, WINDOW_DATA)

@@ -3,7 +3,7 @@ import math
 from support import rectangle_collision, opposite_direction
 
 class Item:
-    def __init__(self, ds, id, img, pos, conveyors, tile_size, size, overlay=False):
+    def __init__(self, ds, id, img, pos, conveyors, tile_size, size, sell_func, overlay=False):
         self.ds = ds
         self.conveyors = conveyors
         self.size = size
@@ -11,6 +11,8 @@ class Item:
 
         self.id = id
         self.img = img
+
+        self.sell_func = sell_func
 
         self.x = pos[0]
         self.y = pos[1]
@@ -22,7 +24,7 @@ class Item:
         self.delete = False
         self.despawn_time = None
 
-        self.conveyor_speed = 20
+        self.conveyor_speed = 22
         self.conveyor_size = tile_size
 
         self.conveyor_directions = {
@@ -44,11 +46,11 @@ class Item:
         if self.y < 0:
             self.y = 0
             if (self.despawn_time == None): self.despawn = True
-        if self.x > 192 - self.size:
-            self.x = 192 - self.size
+        if self.x > 320 - self.size:
+            self.x = 320 - self.size
             if (self.despawn_time == None): self.despawn = True
-        if self.y > 192 - self.size:
-            self.y = 192 - self.size
+        if self.y > 176 - self.size:
+            self.y = 176 - self.size
             if (self.despawn_time == None): self.despawn = True
 
     def despawn_timer(self):
@@ -67,7 +69,10 @@ class Item:
 
     def enter_inventory(self, data):
         inventory = data.inventory
-        inventory[self.id] += 1
+        if self.id in inventory:
+            inventory[self.id] += 1
+        else:
+            inventory[self.id] = 1
 
     def change_target(self):
         # Get all the data about tile we are on and where we came from
@@ -92,6 +97,7 @@ class Item:
                 self.target_y = (tileY + movement[1]) * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
 
         elif tile == 3: # Seller
+            self.sell_func(self.id)
             self.delete = True # Delete
 
         elif tile == 4: # Crafter

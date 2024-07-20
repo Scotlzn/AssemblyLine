@@ -4,7 +4,8 @@ from support import generate_empty_map
 class Map:
     def __init__(self, ds, tile_size):
         self.ds = ds
-        self.size = 12
+        self.width = 20
+        self.height = 11
         self.tile_size = tile_size
         self.tiles = self.generate_empty()
         self.images = self.generate_images()
@@ -16,7 +17,14 @@ class Map:
             pygame.image.load('./Assets/Tiles/conveyor.png').convert(),
             pygame.image.load('./Assets/Tiles/generator.png').convert(),
             pygame.image.load('./Assets/Tiles/seller.png').convert(),
-            pygame.image.load('./Assets/Tiles/crafter.png').convert()
+            pygame.image.load('./Assets/Tiles/crafter.png').convert(),
+            pygame.image.load('./Assets/Tiles/wiredrawer.png').convert(),
+            pygame.image.load('./Assets/Tiles/selector2.png').convert(),
+            pygame.image.load('./Assets/Tiles/selector3.png').convert(),
+            pygame.image.load('./Assets/Tiles/splitter_l.png').convert(),
+            pygame.image.load('./Assets/Tiles/splitter_r.png').convert(),
+            pygame.image.load('./Assets/Tiles/tunnel_in.png').convert(),
+            pygame.image.load('./Assets/Tiles/tunnel_out.png').convert()
             ]
         for tile in range(len(tiles)):
             img = tiles[tile]
@@ -27,11 +35,11 @@ class Map:
         return out
 
     def generate_empty(self):
-        return generate_empty_map(self.size)
+        return generate_empty_map(self.width, self.height)
 
     def render(self):
-        for y in range(self.size):
-            for x in range(self.size):
+        for y in range(self.height):
+            for x in range(self.width):
                 tile = self.tiles[y][x]
                 if tile != 0:
                     tile.update()

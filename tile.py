@@ -14,12 +14,8 @@ class Tile:
 
         self.generating = 1 # Only changes on generators
 
-        # Test - leave as {}
-        self.inventory = {
-            1: 25,
-            2: 3,
-            3: 50000
-        }
+        self.inventory = {}
+        self.recipe = None
 
     def render(self):
         self.ds.blit(self.img, (self.x, self.y))

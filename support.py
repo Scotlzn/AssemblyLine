@@ -1,15 +1,15 @@
-import pygame
+import pygame, json
 from random import randint
 
 def rectangle_collision(a, b):
     return (a[0] < b[0] + b[2] and a[0] + a[2] > b[0] and
             a[1] < b[1] + b[3] and a[1] + a[3] > b[1])
 
-def generate_empty_map(size):
+def generate_empty_map(w, h):
     out = []
-    for y in range(size):
+    for y in range(h):
         nl = []
-        for x in range(size):
+        for x in range(w):
             tile = 0
             # if randint(1, 2) == 1:
             #     tile = randint(1, 4)
@@ -50,3 +50,7 @@ def centred_text_at(surf, font, pos, text):
 
 def opposite_direction(n):
     return (n + 2 - 1) % 4 + 1
+
+def load_json(path):
+    data = json.load(open(path+'.json'))
+    return data
