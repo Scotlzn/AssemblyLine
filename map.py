@@ -42,7 +42,7 @@ class Map:
             for x in range(self.width):
                 tile = self.tiles[y][x]
                 if tile != 0:
-                    tile.update()
+                    self.ds.blit(tile.img, (tile.x, tile.y))
 
     def update(self):
         self.render()

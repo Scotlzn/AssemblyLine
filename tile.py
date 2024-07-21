@@ -12,13 +12,9 @@ class Tile:
         self.tile = orientation[0]
         self.rotation = orientation[1]
 
+        # ----- UNIQUE PROPERTIES -------
         self.generating = 1 # Only changes on generators
+        self.split = 4
 
         self.inventory = {}
         self.recipe = None
-
-    def render(self):
-        self.ds.blit(self.img, (self.x, self.y))
-
-    def update(self):
-        self.render()

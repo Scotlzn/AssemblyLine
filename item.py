@@ -1,13 +1,15 @@
 import pygame, time
 import math
-from support import rectangle_collision, opposite_direction
+from support import rectangle_collision, opposite_direction, selector_direction
 
 class Item:
-    def __init__(self, ds, id, img, pos, conveyors, tile_size, size, sell_func, overlay=False):
+    def __init__(self, ds, id, img, pos, conveyors, tunnels, tile_size, size, sell_func, overlay=False):
         self.ds = ds
         self.conveyors = conveyors
         self.size = size
         self.overlay = overlay
+
+        self.tunnels = tunnels
 
         self.id = id
         self.img = img
@@ -26,6 +28,8 @@ class Item:
 
         self.conveyor_speed = 22
         self.conveyor_size = tile_size
+
+        self.visible = True
 
         self.conveyor_directions = {
             1: (0, 1),   # Down
@@ -74,6 +78,13 @@ class Item:
         else:
             inventory[self.id] = 1
 
+    def move_to(self, x, y, direction):
+        movement = self.conveyor_directions[direction]
+        # Set new target to conveyor direction * conveyor size + (middle of conveyor) + (middle of item)
+        self.target_x = (x + movement[0]) * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
+        self.target_y = (y + movement[1]) * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
+        self.direction = direction
+
     def change_target(self):
         # Get all the data about tile we are on and where we came from
         tileX = math.floor(self.x / self.conveyor_size)
@@ -89,12 +100,9 @@ class Item:
         previous_direction = self.direction
         self.direction = tile_data.rotation
 
-        if tile == 1: # Conveyor
+        if tile == 1: # Conveyor and tunnel out
             if not self.overlay:
-                movement = self.conveyor_directions[self.direction]
-                # Set new target to conveyor direction * conveyor size + (middle of conveyor) + (middle of item)
-                self.target_x = (tileX + movement[0]) * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
-                self.target_y = (tileY + movement[1]) * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
+                self.move_to(tileX, tileY, self.direction)
 
         elif tile == 3: # Seller
             self.sell_func(self.id)
@@ -105,6 +113,26 @@ class Item:
             if incident_direction != previous_direction: # If item enters crafter via valid direction
                 self.enter_inventory(tile_data)
             self.delete = True
+
+        elif tile in [6, 7]: # Selectors 2 (6) and 3 (7)
+            incident_direction = opposite_direction(self.direction)
+            if incident_direction == previous_direction: # If item enters crafter via bottom
+                tile_data.split = selector_direction(tile_data.split, (tile - 6) + 2) # Update splitter path
+                self.move_to(tileX, tileY, opposite_direction(tile_data.split, tile_data.rotation - 1))
+            else: self.delete = True
+
+        elif tile == 10: # Tunnel In
+            if (tileX, tileY) in self.tunnels:
+                pos = self.tunnels[(tileX, tileY)]
+                self.target_x = pos[0] * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
+                self.target_y = pos[1] * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
+                self.direction = self.direction
+                self.visible = False
+            else: self.schedule_to_despawn()
+
+        elif tile == 11: # Tunnel Out
+            self.move_to(tileX, tileY, self.direction)
+            self.visible = True
 
         else: self.schedule_to_despawn() # Ground or unknown tile
 
@@ -128,7 +156,8 @@ class Item:
         self.bounds_check()
 
     def render(self):
-        self.ds.blit(self.img, (self.x, self.y))
+        if self.visible:
+            self.ds.blit(self.img, (self.x, self.y))
 
     def update(self, dt):
         self.move(dt)

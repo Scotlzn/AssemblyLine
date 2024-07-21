@@ -1,4 +1,4 @@
-import pygame, json
+import pygame, json, math
 from random import randint
 
 def rectangle_collision(a, b):
@@ -48,9 +48,50 @@ def centred_text_at(surf, font, pos, text):
         textRect = textSurface.get_rect(center=pos)
         surf.blit(textSurface, textRect)
 
-def opposite_direction(n):
-    return (n + 2 - 1) % 4 + 1
+def opposite_direction(n, by=2):
+    return (n + by - 1) % 4 + 1
+
+selector2 = {4: 2,2: 4}
+selector3 = {4: 2,2: 3,3: 4}
+def selector_direction(direction, selector):
+    if selector == 2:
+        return selector2[direction]
+    elif selector == 3:
+        return selector3[direction]
 
 def load_json(path):
     data = json.load(open(path+'.json'))
     return data
+
+def load_prices():
+    out = {}
+    data = load_json('./Data/prices')
+    for key, value in data.items():
+        out[int(key)] = value
+    return out
+
+def render_tunnel_path(surf, tileX, tileY, tunnel):
+        # Dont render the tunnel path if it is not straight, or behind entrance
+        distance = 0
+        # ----- Check direction -------
+        if tunnel[2] in [1, 3]:
+            if tileX != tunnel[0]: return False
+            distance = tileY - tunnel[1]
+        if tunnel[2] in [2, 4]:
+            if tileY != tunnel[1]: return False
+            distance = tileX - tunnel[0]
+        # ----- Check overall distance to centre -----
+        if abs(distance) < 2: return False
+        # ----- Check if tile is in the wrong direction ------
+        if distance < 0 and tunnel[2] in [2, 3]: return False
+        if distance > 0 and tunnel[2] in [1, 4]: return False
+        # ----- Render in the right direction -----
+        if tunnel[2] == 2:
+            pygame.draw.rect(surf, (255, 0, 0), (tunnel[0] * 16 + (16 * math.copysign(1, distance)), tunnel[1] * 16, (distance-1) * 16, 16))
+        elif tunnel[2] == 4:
+            pygame.draw.rect(surf, (255, 0, 0), (tileX * 16 + (-16 * math.copysign(1, distance)), tileY * 16, (-distance-1) * 16, 16))
+        elif tunnel[2] == 3:
+            pygame.draw.rect(surf, (255, 0, 0), (tunnel[0] * 16, (tunnel[1] * 16 + (16 * math.copysign(1, distance))), 16, (distance-1)*16))
+        else:
+            pygame.draw.rect(surf, (255, 0, 0), (tileX * 16, (tileY * 16 + (-16 * math.copysign(1, distance))), 16, (-distance-1)*16))
+        return True

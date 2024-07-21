@@ -1,7 +1,7 @@
 import pygame, sys, math, time
 from map import Map
 from item import Item
-from support import image_alpha, load_all_items, rectangle_collision, load_json
+from support import image_alpha, load_all_items, load_prices, load_json, opposite_direction, render_tunnel_path
 from editor import Editor
 from ui import Ui
 from tile import Tile
@@ -16,8 +16,12 @@ class Game:
 
         self.money = 0
 
+        self.mps = 0
+        self.money_this_second = 0
+
         self.item_images = load_all_items()
         self.recipes = load_json('./Data/recipes')
+        self.prices = load_prices()
 
         self.map = Map(self.ds, self.tile_size)
         self.editor = Editor()
@@ -25,12 +29,17 @@ class Game:
 
         self.timers = {
             'generator': time.time(),
-            'crafter': time.time()
+            'crafter': time.time(),
+            'money': time.time()
         }
 
         self.items = []
         self.mouse_down = False
         self.overlay = None
+
+        self.tunnel = []
+        self.tunnel_connections = {}
+        self.valid_tunnel = False
 
     def get_mouse_pos(self):
         mouseX, mouseY = pygame.mouse.get_pos()
@@ -63,10 +72,11 @@ class Game:
                     tile.inventory.pop(id, None)
 
     def spawn_item(self, id, rotation, x, y):
-        new_item = Item(self.ds, id, self.item_images[id], (x * self.tile_size + (self.tile_size * 0.5) - (self.item_size * 0.5), y * self.tile_size + (self.tile_size * 0.5) - (self.item_size * 0.5)), self.map.tiles, self.tile_size, self.item_size, self.sell_item)
+        new_item = Item(self.ds, id, self.item_images[id], (x * self.tile_size + (self.tile_size * 0.5) - (self.item_size * 0.5), y * self.tile_size + (self.tile_size * 0.5) - (self.item_size * 0.5)), self.map.tiles,self.tunnel_connections, self.tile_size, self.item_size, self.sell_item)
         movement = self.editor.get_movement_from_rotation(rotation)
         new_item.target_x = (x + movement[0]) * new_item.conveyor_size + (new_item.conveyor_size * 0.5) - (self.item_size * 0.5)
         new_item.target_y = (y + movement[1]) * new_item.conveyor_size + (new_item.conveyor_size * 0.5) - (self.item_size * 0.5)
+        new_item.direction = rotation
         self.items.append(new_item)
 
     def update_timers(self):
@@ -80,6 +90,13 @@ class Game:
         crafter_timer = current_time > self.timers['crafter'] + 1
         if crafter_timer:
             self.timers['crafter'] = current_time
+
+        # ----- MONEY -----
+        money_timer = current_time > self.timers['money'] + 1
+        if money_timer:
+            self.timers['money'] = current_time
+            self.mps = self.money_this_second
+            self.money_this_second = 0
 
         for y in range(self.map.height):
             for x in range(self.map.width):
@@ -101,19 +118,31 @@ class Game:
                                 self.spawn_item(recipe["output"], tile.rotation, x, y)
                                 self.consume_items(recipe, tile)
 
-
     # -------- Picking up items -------
     def pick_up_item(self, tile, mouseX, mouseY):
         if tile != 0 and tile.tile == 2: return
         for item in self.items:
             if item.colliding((mouseX, mouseY, 1, 1)):
-                self.overlay = Item(self.ds, item.id, item.img, (mouseX - (self.item_size * 0.5), mouseY - (self.item_size * 0.5)), self.map.tiles, self.tile_size, self.item_size, self.sell_item, True)
+                self.overlay = Item(self.ds, item.id, item.img, (mouseX - (self.item_size * 0.5), mouseY - (self.item_size * 0.5)), self.map.tiles, self.tunnel_connections, self.tile_size, self.item_size, self.sell_item, True)
                 self.items.remove(item)
                 break
     
     def sell_item(self, item_id):
-        print(f'Sold item {item_id}')
-        self.money += 1
+        cost = self.prices[item_id]
+        self.money += cost
+        self.money_this_second += cost
+
+    def create_tunnel(self, tileX, tileY):
+        if self.editor.selected_tile == 10:
+            self.tunnel = [tileX, tileY, self.editor.rotation]
+            self.editor.selected_tile = 11
+            self.editor.rotation = opposite_direction(self.editor.rotation)
+        elif self.editor.selected_tile == 11:
+            if self.valid_tunnel: # Confirm if tunnel is valid :D
+                self.tunnel_connections[(self.tunnel[0], self.tunnel[1])] = (tileX, tileY)
+            self.tunnel = []
+            self.editor.selected_tile = 10
+            self.editor.rotation = opposite_direction(self.editor.rotation)
 
     def loop(self):
         for event in pygame.event.get():
@@ -172,10 +201,20 @@ class Game:
                 
                 if event.button == 1:
                     if self.editor.active:
-                        # ---------- Placing conveyors ------------
+                        # ---------- Placing tiles ------------
                         if tile == 0:
                             self.map.tiles[tileY][tileX] = Tile(self.ds, (tileX * self.tile_size, tileY * self.tile_size), (self.editor.selected_tile, self.editor.rotation), self.tile_size, self.map.images[self.editor.get_correct_index()])
+                            self.create_tunnel(tileX, tileY)
                         else:
+                            # ------- Delete tunnel -------
+                            if self.map.tiles[tileY][tileX].tile == 10:
+                                if (tileX, tileY) in self.tunnel_connections:
+                                    self.tunnel_connections.pop((tileX, tileY))
+                            if self.map.tiles[tileY][tileX].tile == 11:
+                                position = next((key for key, value in self.tunnel_connections.items() if value == (tileX, tileY)), None)
+                                if position != None:
+                                    self.tunnel_connections.pop(position)
+
                             self.map.tiles[tileY][tileX] = 0
 
                     else: # ----------- Pickup and UI -------------
@@ -187,7 +226,7 @@ class Game:
                 self.mouse_down = False
                 if event.button == 1:
                     if self.overlay != None:
-                        self.items.append(Item(self.ds, self.overlay.id, self.overlay.img, (self.overlay.x, self.overlay.y), self.map.tiles, self.tile_size, self.item_size, self.sell_item))
+                        self.items.append(Item(self.ds, self.overlay.id, self.overlay.img, (self.overlay.x, self.overlay.y), self.map.tiles, self.tunnel_connections, self.tile_size, self.item_size, self.sell_item))
                         self.overlay = None
 
     def update(self, dt):
@@ -208,8 +247,14 @@ class Game:
             self.overlay.y = mouseY - (self.item_size * 0.5)
             self.overlay.update(dt)
 
-        elif self.editor.active: # Placing outline
+        elif self.editor.active:
             tileX, tileY = self.get_tile_at()
+
+            # ---- TUNNEL PATH ------
+            if self.editor.selected_tile == 11:
+                self.valid_tunnel = render_tunnel_path(self.ds, tileX, tileY, self.tunnel)
+
+            # ---- OUTLINE --------
             if tileY < self.map.height:
                 tile = self.map.tiles[tileY][tileX]
                 if tile == 0:

@@ -1,0 +1,4 @@
+Navbar update - Tiles is a submenu, also has upgrades, settings, etc
+Add Wire Drawer, Selector
+Upgrades?
+Saving system

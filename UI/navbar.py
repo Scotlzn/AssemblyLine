@@ -1,5 +1,5 @@
 import pygame
-from support import rectangle_collision
+from support import rectangle_collision, centred_text_at
 
 class Navbar:
     def __init__(self, ds, game, font, tile_images):
@@ -21,6 +21,8 @@ class Navbar:
         for i in range(10):
             tile = self.tile_images[(i * 4) + 1]
             self.ds.blit(tile, (i * (16 + 1), 176))
+        centred_text_at(self.ds, self.font, (230, 192-8), f'M/S: {self.game.mps}')
+        centred_text_at(self.ds, self.font, (290, 192-8), f'Money: {self.game.money}')
 
     def update(self):
         self.render()
