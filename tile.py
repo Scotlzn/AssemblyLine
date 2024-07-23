@@ -14,7 +14,8 @@ class Tile:
 
         # ----- UNIQUE PROPERTIES -------
         self.generating = 1 # Only changes on generators
-        self.split = 4
+        self.split = 4 # For selectors
 
+        # ----- MACHINE PROPERTIES ------
         self.inventory = {}
         self.recipe = None

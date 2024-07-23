@@ -108,20 +108,27 @@ class Item:
             self.sell_func(self.id)
             self.delete = True # Delete
 
-        elif tile == 4: # Crafter
+        elif tile in [4, 5, 6, 7, 8]: # Crafters
             incident_direction = opposite_direction(self.direction)
-            if incident_direction != previous_direction: # If item enters crafter via valid direction
+            if incident_direction != previous_direction: # If item enters tile via valid direction
                 self.enter_inventory(tile_data)
             self.delete = True
 
-        elif tile in [6, 7]: # Selectors 2 (6) and 3 (7)
+        elif tile in [9, 10]: # Selectors 2 (9) and 3 (10)
             incident_direction = opposite_direction(self.direction)
             if incident_direction == previous_direction: # If item enters crafter via bottom
-                tile_data.split = selector_direction(tile_data.split, (tile - 6) + 2) # Update splitter path
+                tile_data.split = selector_direction(tile_data.split, (tile - 9) + 2) # Update splitter path
                 self.move_to(tileX, tileY, opposite_direction(tile_data.split, tile_data.rotation - 1))
             else: self.delete = True
 
-        elif tile == 10: # Tunnel In
+        elif tile in [11, 12]: # Splitter
+            direction = {11: 1, 12: 3}
+            if tile_data.recipe != self.id:
+                self.move_to(tileX, tileY, opposite_direction(self.direction)) # Splitter is reversed
+            else:
+                self.move_to(tileX, tileY, opposite_direction(self.direction, direction[tile])) # Left or Right
+
+        elif tile == 13: # Tunnel In
             if (tileX, tileY) in self.tunnels:
                 pos = self.tunnels[(tileX, tileY)]
                 self.target_x = pos[0] * self.conveyor_size + (self.conveyor_size * 0.5) - (self.size * 0.5)
@@ -130,13 +137,15 @@ class Item:
                 self.visible = False
             else: self.schedule_to_despawn()
 
-        elif tile == 11: # Tunnel Out
+        elif tile == 14: # Tunnel Out
             self.move_to(tileX, tileY, self.direction)
             self.visible = True
 
         else: self.schedule_to_despawn() # Ground or unknown tile
 
     def move(self, dt):
+        # Dont calculate anything while an overlay or it will cause bugs
+        if self.overlay: return
         # Change target to next conveyor if target has been reached (by target I mean centre)
         if self.x == self.target_x and self.y == self.target_y:
             self.change_target()
@@ -153,13 +162,12 @@ class Item:
         elif self.y > self.target_y:
             self.y -= min(self.conveyor_speed * dt, self.y - self.target_y)
 
-        self.bounds_check()
-
     def render(self):
         if self.visible:
             self.ds.blit(self.img, (self.x, self.y))
 
     def update(self, dt):
         self.move(dt)
+        self.bounds_check()
         self.render()
         self.despawn_checks()

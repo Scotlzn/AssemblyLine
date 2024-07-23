@@ -2,7 +2,7 @@ import pygame, math
 from support import centred_text_at, rectangle_collision
 
 class Crafter_Ui:
-    def __init__(self, window_data, ds, font, item_images, recipes):
+    def __init__(self, window_data, ds, font, item_images, images, recipes):
         self.window_data = window_data
         self.ds = ds
         self.font = font
@@ -12,9 +12,7 @@ class Crafter_Ui:
 
         self.state = 1 # 1 = Main, 2 = Submenu
 
-        self.images = [
-            pygame.image.load('./Assets/ui_pointer.png').convert()
-        ]
+        self.images = images
         none_img = pygame.image.load('./Assets/none.png').convert()
         none_img.set_colorkey((0, 0, 0))
         self.item_images.insert(0, none_img) # Insert none tile
@@ -59,7 +57,7 @@ class Crafter_Ui:
 
     def render_inventory(self, centre):
         # Rendering stuff
-        n = len(self.open_tile.inventory)
+        n = min(3, len(self.open_tile.inventory))
         margin = 12
         offset = 8
         total_width = n * self.square_size + (n - 1) * margin
@@ -74,6 +72,11 @@ class Crafter_Ui:
             x = start_x + i * (self.square_size + margin)
             self.ds.blit(self.item_images[inventory_ids[i]], (x, start_y - offset))
             centred_text_at(self.ds, self.font, (x + (self.square_size * 0.5), start_y + self.square_size + 6 - offset), f"{inventory[inventory_ids[i]]}")
+
+        # Empty button
+        self.ds.blit(self.images[1], (self.midpoint[0] + self.half_width - 7, self.midpoint[1] + self.half_height - 7))
+        pygame.draw.rect(self.ds, (140, 140, 140), (self.midpoint[0] + self.half_width - 8, self.midpoint[1] + self.half_height - 8, 7, 7), 1)
+
 
     def render_item(self, surf, item, x, y, amt=0, input=False):
         surf.blit(self.item_images[item], (x, y))
@@ -110,6 +113,9 @@ class Crafter_Ui:
         if self.state == 1:
             if rectangle_collision((mouseX, mouseY, 1, 1), (self.midpoint[0] + 28, self.midpoint[1] - 23, 16, 16)):
                 self.state = 2
+            elif rectangle_collision((mouseX, mouseY, 1, 1), (self.midpoint[0] + self.half_width - 7, self.midpoint[1] + self.half_height - 7, 5, 5)):
+                self.open_tile.inventory = {}
+
         elif self.state == 2:
             start_x = self.submenu_midpoint[0] - 41
             first_visable = math.floor((self.scroll + 1) / 22)

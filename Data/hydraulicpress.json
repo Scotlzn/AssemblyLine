@@ -1,0 +1,10 @@
+[
+    {
+        "input": {"id": 0, "amt": 0},
+        "output": 0
+    },
+    {
+        "input": {"id": 3, "amt": 1},
+        "output": 4
+    }
+]

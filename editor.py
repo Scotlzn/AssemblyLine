@@ -1,9 +1,12 @@
 class Editor:
     def __init__(self):
         self.active = False
+
         # 1 = down, 2 = left, 3 = up, 4 = right
         self.rotation = 1
         self.selected_tile = 1
+
+        self.more_tiles_toggle = False
 
         self.directions = {
             1: (0, 1),   # Down
