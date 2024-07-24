@@ -15,16 +15,17 @@ class Ui:
     def __init__(self, window_data, ds, game, item_images, recipes):
         self.ds = ds
         self.game = game
-        self.font = pygame.font.Font('./Fonts/font.ttf', 10)
+        self.font = pygame.font.Font('./Fonts/font.ttf', 20)
+        self.small_font = pygame.font.Font('./Fonts/font.ttf', 10)
         self.images = self.scale_up_items(item_images)
 
         self.img = [
-            pygame.image.load('./Assets/ui_pointer.png').convert(),
-            pygame.image.load('./Assets/empty.png').convert()
+            pygame.transform.scale(pygame.image.load('./Assets/ui_pointer.png').convert(), (16, 16)),
+            pygame.transform.scale(pygame.image.load('./Assets/empty.png').convert(), (10, 10))
         ]
 
         self.navbar = Navbar(self.ds, self.game, self.font, self.game.map.images)
-        self.crafter_ui = Crafter_Ui(window_data, self.ds, self.font, self.images, self.img, recipes)
+        self.crafter_ui = Crafter_Ui(window_data, self.ds, (self.font, self.small_font), self.images, self.img, recipes)
         self.generator_ui = Generator_Ui(window_data, self.ds, self.font, self.images)
         self.machine_ui = MachineUi(window_data, self.ds, self.font, self.images, self.img)
         self.splitter_ui = Splitter_Ui(window_data, self.ds, self.font, self.images)
@@ -33,13 +34,14 @@ class Ui:
         self.active = 0
 
         self.midpoint = [window_data["Width"] * 0.5, window_data["Height"] * 0.5]
-        self.ui_sizes= [[98, 60], [64, 64], [self.machine_ui.width, self.machine_ui.height], [self.splitter_ui.width, self.splitter_ui.height]]
+        self.ui_sizes= [[self.crafter_ui.gui_width, self.crafter_ui.gui_height], [self.generator_ui.gui_size, self.generator_ui.gui_size], 
+        [self.machine_ui.width, self.machine_ui.height], [self.splitter_ui.width, self.splitter_ui.height]]
 
     def scale_up_items(self, img_data):
         out = []
         for i in range(len(img_data)):
             img = img_data[i + 1]
-            out.append(pygame.transform.scale(img, (16, 16)))
+            out.append(pygame.transform.scale(img, (32, 32)))
         return out
 
     def submenus(self, mouseX, mouseY):

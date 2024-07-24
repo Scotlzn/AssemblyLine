@@ -1,4 +1,7 @@
-Navbar update - Tiles is a submenu, also has upgrades, settings, etc
-Add suffixes to inventories
-Upgrades?
+Lots of art and recipies :D
+Small descriptive item text??? and timer UI
+Navbar - Upgrades
+Navbar - Settings
+Navbar - Tutorial
 Saving system
+Achievments?

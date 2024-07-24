@@ -11,15 +11,15 @@ class Game:
         self.ds = ds
         self.window_data = window_data
 
-        self.tile_size = 16
-        self.item_size = 8
+        self.tile_size = 32
+        self.item_size = 16
 
         self.money = 0
 
         self.mps = 0
         self.money_this_second = 0
 
-        self.item_images = load_all_items()
+        self.item_images = load_all_items(4)
         self.recipes = load_json('./Data/recipes')
         self.prices = load_prices()
 

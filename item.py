@@ -26,7 +26,7 @@ class Item:
         self.delete = False
         self.despawn_time = None
 
-        self.conveyor_speed = 22
+        self.conveyor_speed = 44
         self.conveyor_size = tile_size
 
         self.visible = True
@@ -50,11 +50,11 @@ class Item:
         if self.y < 0:
             self.y = 0
             if (self.despawn_time == None): self.despawn = True
-        if self.x > 320 - self.size:
-            self.x = 320 - self.size
+        if self.x > 640 - self.size:
+            self.x = 640 - self.size
             if (self.despawn_time == None): self.despawn = True
-        if self.y > 176 - self.size:
-            self.y = 176 - self.size
+        if self.y > 352 - self.size:
+            self.y = 352 - self.size
             if (self.despawn_time == None): self.despawn = True
 
     def despawn_timer(self):

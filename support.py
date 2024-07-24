@@ -10,10 +10,7 @@ def generate_empty_map(w, h):
     for y in range(h):
         nl = []
         for x in range(w):
-            tile = 0
-            # if randint(1, 2) == 1:
-            #     tile = randint(1, 4)
-            nl.append(tile)
+            nl.append(0)
         out.append(nl)
     return out
 
@@ -28,7 +25,13 @@ def load_all_items(items=4):
     for i in range(1, items+1, 1):
         out[i] = pygame.image.load(f'Assets/Items/{i}.png').convert()
     return out
-    
+
+def fixed_text_at(surf, font, pos, text):
+    textSurface = font.render(text, False, (255, 255, 255))
+    textRect = textSurface.get_rect()
+    textRect.topleft = pos
+    surf.blit(textSurface, textRect)
+
 def centred_text_at(surf, font, pos, text):
     textSurface = font.render(text, False, (255, 255, 255))
     textRect = textSurface.get_rect(center=pos)
@@ -139,7 +142,7 @@ def add_suffix(n):
         out = string
     return out
 
-def render_tunnel_path(surf, tileX, tileY, tunnel):
+def render_tunnel_path(surf, tileX, tileY, tunnel, tile_size=32):
         # Dont render the tunnel path if it is not straight, or behind entrance
         distance = 0
         # ----- Check direction -------
@@ -156,11 +159,11 @@ def render_tunnel_path(surf, tileX, tileY, tunnel):
         if distance > 0 and tunnel[2] in [1, 4]: return False
         # ----- Render in the right direction -----
         if tunnel[2] == 2:
-            pygame.draw.rect(surf, (255, 0, 0), (tunnel[0] * 16 + (16 * math.copysign(1, distance)), tunnel[1] * 16, (distance-1) * 16, 16))
+            pygame.draw.rect(surf, (255, 0, 0), (tunnel[0] * tile_size + (tile_size * math.copysign(1, distance)), tunnel[1] * tile_size, (distance-1) * tile_size, tile_size))
         elif tunnel[2] == 4:
-            pygame.draw.rect(surf, (255, 0, 0), (tileX * 16 + (-16 * math.copysign(1, distance)), tileY * 16, (-distance-1) * 16, 16))
+            pygame.draw.rect(surf, (255, 0, 0), (tileX * tile_size + (-tile_size * math.copysign(1, distance)), tileY * tile_size, (-distance-1) * tile_size, tile_size))
         elif tunnel[2] == 3:
-            pygame.draw.rect(surf, (255, 0, 0), (tunnel[0] * 16, (tunnel[1] * 16 + (16 * math.copysign(1, distance))), 16, (distance-1)*16))
+            pygame.draw.rect(surf, (255, 0, 0), (tunnel[0] * tile_size, (tunnel[1] * tile_size + (tile_size * math.copysign(1, distance))), tile_size, (distance-1)*tile_size))
         else:
-            pygame.draw.rect(surf, (255, 0, 0), (tileX * 16, (tileY * 16 + (-16 * math.copysign(1, distance))), 16, (-distance-1)*16))
+            pygame.draw.rect(surf, (255, 0, 0), (tileX * tile_size, (tileY * tile_size + (-tile_size * math.copysign(1, distance))), tile_size, (-distance-1)*tile_size))
         return True
